@@ -1,0 +1,297 @@
+CREATE SCHEMA IF NOT EXISTS `hospital` DEFAULT CHARACTER SET utf8mb4 ;
+USE `hospital` ;
+
+CREATE TABLE IF NOT EXISTS `hospital`.`enfermo` (
+  `enfermoId` INT(11) NOT NULL,
+  `nombre` VARCHAR(30) NOT NULL,
+  `posicion` VARCHAR(30) NOT NULL,
+  `registrado` BIT(1) NOT NULL,
+  `SSN` INT(11) NOT NULL,
+  PRIMARY KEY (`enfermoId`))
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+CREATE TABLE IF NOT EXISTS `hospital`.`procedimiento` (
+  `procedimientoId` INT(11) NOT NULL,
+  `nombre` VARCHAR(30) NOT NULL,
+  `coxto` DOUBLE NOT NULL,
+  PRIMARY KEY (`procedimientoId`))
+DEFAULT CHARACTER SET = utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `hospital`.`bloque` (
+  `bloque_piso` INT(11) NOT NULL,
+  `bloqueId` INT(11) NOT NULL,
+  PRIMARY KEY (`bloqueId`, `bloque_piso`))
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+CREATE TABLE IF NOT EXISTS `hospital`.`medicamento` (
+  `medicamentoId` INT(11) NOT NULL,
+  `nombre` VARCHAR(30) NOT NULL,
+  `marca` VARCHAR(30) NOT NULL,
+  `descripcion` VARCHAR(60) NOT NULL,
+  PRIMARY KEY (`medicamentoId`))
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `hospital`.`medico` (
+  `medicoId` INT NOT NULL,
+  `nombre` VARCHAR(30) NOT NULL,
+  `posicion` VARCHAR(30) NOT NULL,
+  `SSN` INT(11) NOT NULL,
+  PRIMARY KEY (`medicoId`));
+
+
+CREATE TABLE IF NOT EXISTS `hospital`.`departamento` (
+  `departamentoId` INT(11) NOT NULL,
+  `nombre` VARCHAR(30) NOT NULL,
+  `hed` INT(11) NOT NULL,
+  `medico_medicoId` INT(11) NOT NULL,
+  PRIMARY KEY (`departamentoId`),
+  INDEX `fk_departamento_medico_idx` (`medico_medicoId` ASC),
+  CONSTRAINT `fk_departamento_medico`
+    FOREIGN KEY (`medico_medicoId`)
+    REFERENCES `hospital`.`medico` (`medicoId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+CREATE TABLE IF NOT EXISTS `hospital`.`paciente` (
+  `pacienteId` INT(11) NOT NULL,
+  `Nombre` VARCHAR(30) NOT NULL,
+  `direccion` VARCHAR(30) NOT NULL,
+  `telefono` VARCHAR(30) NOT NULL,
+  `seguro` INT(11) NOT NULL,
+  `PCP` INT(11) NOT NULL,
+  `medico_medicoId` INT(11) NOT NULL,
+  PRIMARY KEY (`pacienteId`),
+  INDEX `fk_paciente_medico1_idx` (`medico_medicoId` ASC),
+  CONSTRAINT `fk_paciente_medico1`
+    FOREIGN KEY (`medico_medicoId`)
+    REFERENCES `hospital`.`medico` (`medicoId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+CREATE TABLE IF NOT EXISTS `hospital`.`entrenamiento` (
+  `entrenamientoId` INT(11) NOT NULL,
+  `certificacion_date` DATETIME NOT NULL,
+  `certificacion_expira` DATETIME NOT NULL,
+  `medico_medicoId` INT(11) NOT NULL,
+  `procedimiento_procedimientoId` INT(11) NOT NULL,
+  PRIMARY KEY (`entrenamientoId`),
+  INDEX `fk_entrenamiento_medico1_idx` (`medico_medicoId` ASC),
+  INDEX `fk_entrenamiento_procedimiento1_idx` (`procedimiento_procedimientoId` ASC),
+  CONSTRAINT `fk_entrenamiento_medico1`
+    FOREIGN KEY (`medico_medicoId`)
+    REFERENCES `hospital`.`medico` (`medicoId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_entrenamiento_procedimiento1`
+    FOREIGN KEY (`procedimiento_procedimientoId`)
+    REFERENCES `hospital`.`procedimiento` (`procedimientoId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+
+CREATE TABLE IF NOT EXISTS `hospital`.`afiliacion` (
+  `primaryAffiliation` BIT(1) NOT NULL,
+  `medico_medicoId` INT(11) NOT NULL,
+  `departamento_departamentoId` INT(11) NOT NULL,
+  PRIMARY KEY (`primaryAffiliation`),
+  INDEX `fk_afiliacion_medico1_idx` (`medico_medicoId` ASC),
+  INDEX `fk_afiliacion_departamento1_idx` (`departamento_departamentoId` ASC),
+  CONSTRAINT `fk_afiliacion_medico1`
+    FOREIGN KEY (`medico_medicoId`)
+    REFERENCES `hospital`.`medico` (`medicoId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_afiliacion_departamento1`
+    FOREIGN KEY (`departamento_departamentoId`)
+    REFERENCES `hospital`.`departamento` (`departamentoId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+
+CREATE TABLE IF NOT EXISTS `hospital`.`cita` (
+  `citaId` INT(11) NOT NULL,
+  `inicio` DATETIME NOT NULL,
+  `fin` DATETIME NOT NULL,
+  `examinacionHabitacion` TEXT NOT NULL,
+  `medico_medicoId` INT(11) NOT NULL,
+  `enfermo_enfermoId` INT(11) NOT NULL,
+  `paciente_pacienteId` INT(11) NOT NULL,
+  PRIMARY KEY (`citaId`),
+  INDEX `fk_cita_medico1_idx` (`medico_medicoId` ASC),
+  INDEX `fk_cita_enfermo1_idx` (`enfermo_enfermoId` ASC),
+  INDEX `fk_cita_paciente1_idx` (`paciente_pacienteId` ASC),
+  CONSTRAINT `fk_cita_medico1`
+    FOREIGN KEY (`medico_medicoId`)
+    REFERENCES `hospital`.`medico` (`medicoId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_cita_enfermo1`
+    FOREIGN KEY (`enfermo_enfermoId`)
+    REFERENCES `hospital`.`enfermo` (`enfermoId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_cita_paciente1`
+    FOREIGN KEY (`paciente_pacienteId`)
+    REFERENCES `hospital`.`paciente` (`pacienteId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+CREATE TABLE IF NOT EXISTS `hospital`.`prescribe` (
+  `fecha` DATETIME NOT NULL,
+  `dose` VARCHAR(30) NOT NULL,
+  `medico_medicoId` INT(11) NOT NULL,
+  `paciente_pacienteId` INT(11) NOT NULL,
+  `medicamento_medicamentoId` INT(11) NOT NULL,
+  `cita_citaId` INT(11) NOT NULL,
+  PRIMARY KEY (`fecha`),
+  INDEX `fk_prescribe_medico1_idx` (`medico_medicoId` ASC),
+  INDEX `fk_prescribe_paciente1_idx` (`paciente_pacienteId` ASC),
+  INDEX `fk_prescribe_medicamento1_idx` (`medicamento_medicamentoId` ASC),
+  INDEX `fk_prescribe_cita1_idx` (`cita_citaId` ASC),
+  CONSTRAINT `fk_prescribe_medico1`
+    FOREIGN KEY (`medico_medicoId`)
+    REFERENCES `hospital`.`medico` (`medicoId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_prescribe_paciente1`
+    FOREIGN KEY (`paciente_pacienteId`)
+    REFERENCES `hospital`.`paciente` (`pacienteId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_prescribe_medicamento1`
+    FOREIGN KEY (`medicamento_medicamentoId`)
+    REFERENCES `hospital`.`medicamento` (`medicamentoId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_prescribe_cita1`
+    FOREIGN KEY (`cita_citaId`)
+    REFERENCES `hospital`.`cita` (`citaId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+
+CREATE TABLE IF NOT EXISTS `hospital`.`turno` (
+  `turnoId` INT(11) NOT NULL,
+  `inicio_turno` DATETIME NOT NULL,
+  `fin_turno` DATETIME NOT NULL,
+  `enfermo_enfermoId` INT(11) NOT NULL,
+  `bloque_bloqueId` INT(11) NOT NULL,
+  INDEX `fk_turno_enfermo1_idx` (`enfermo_enfermoId` ASC),
+  INDEX `fk_turno_bloque1_idx` (`bloque_bloqueId` ASC),
+  CONSTRAINT `fk_turno_enfermo1`
+    FOREIGN KEY (`enfermo_enfermoId`)
+    REFERENCES `hospital`.`enfermo` (`enfermoId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_turno_bloque1`
+    FOREIGN KEY (`bloque_bloqueId`)
+    REFERENCES `hospital`.`bloque` (`bloqueId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+CREATE TABLE IF NOT EXISTS `hospital`.`habitacion` (
+  `habitacionId` INT(11) NOT NULL,
+  `habitacion_tipo` VARCHAR(30) NOT NULL,
+  `disponible` BIT(1) NOT NULL,
+  `bloque_bloqueId` INT(11) NOT NULL,
+  `bloque_bloque_piso` INT(11) NOT NULL,
+  PRIMARY KEY (`habitacionId`),
+  INDEX `fk_habitacion_bloque1_idx` (`bloque_bloqueId` ASC, `bloque_bloque_piso` ASC),
+  CONSTRAINT `fk_habitacion_bloque1`
+    FOREIGN KEY (`bloque_bloqueId` , `bloque_bloque_piso`)
+    REFERENCES `hospital`.`bloque` (`bloqueId` , `bloque_piso`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+CREATE TABLE IF NOT EXISTS `hospital`.`estadia` (
+  `estadiaId` INT(11) NOT NULL,
+  `paciente` INT(11) NOT NULL,
+  `habitacion` INT(11) NOT NULL,
+  `estadia_inicio` DATETIME NOT NULL,
+  `estadia_fin` DATETIME NOT NULL,
+  `habitacion_habitacionId` INT(11) NOT NULL,
+  `paciente_pacienteId` INT(11) NOT NULL,
+  PRIMARY KEY (`estadiaId`),
+  INDEX `fk_estadia_habitacion1_idx` (`habitacion_habitacionId` ASC),
+  INDEX `fk_estadia_paciente1_idx` (`paciente_pacienteId` ASC),
+  CONSTRAINT `fk_estadia_habitacion1`
+    FOREIGN KEY (`habitacion_habitacionId`)
+    REFERENCES `hospital`.`habitacion` (`habitacionId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_estadia_paciente1`
+    FOREIGN KEY (`paciente_pacienteId`)
+    REFERENCES `hospital`.`paciente` (`pacienteId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+
+CREATE TABLE IF NOT EXISTS `hospital`.`enfermedad` (
+  `enfermedadId` INT(11) NOT NULL,
+  `medico_medicoId` INT(11) NOT NULL,
+  `procedimiento_procedimientoId` INT(11) NOT NULL,
+  `paciente_pacienteId` INT(11) NOT NULL,
+  `estadia_estadiaId` INT(11) NOT NULL,
+  `enfermo_enfermoId` INT(11) NOT NULL,
+  `fecha` DATE NOT NULL,
+  PRIMARY KEY (`enfermedadId`),
+  INDEX `fk_enfermedad_medico1_idx` (`medico_medicoId` ASC),
+  INDEX `fk_enfermedad_procedimiento1_idx` (`procedimiento_procedimientoId` ASC),
+  INDEX `fk_enfermedad_paciente1_idx` (`paciente_pacienteId` ASC),
+  INDEX `fk_enfermedad_estadia1_idx` (`estadia_estadiaId` ASC),
+  INDEX `fk_enfermedad_enfermo1_idx` (`enfermo_enfermoId` ASC),
+  CONSTRAINT `fk_enfermedad_medico1`
+    FOREIGN KEY (`medico_medicoId`)
+    REFERENCES `hospital`.`medico` (`medicoId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_enfermedad_procedimiento1`
+    FOREIGN KEY (`procedimiento_procedimientoId`)
+    REFERENCES `hospital`.`procedimiento` (`procedimientoId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_enfermedad_paciente1`
+    FOREIGN KEY (`paciente_pacienteId`)
+    REFERENCES `hospital`.`paciente` (`pacienteId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_enfermedad_estadia1`
+    FOREIGN KEY (`estadia_estadiaId`)
+    REFERENCES `hospital`.`estadia` (`estadiaId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_enfermedad_enfermo1`
+    FOREIGN KEY (`enfermo_enfermoId`)
+    REFERENCES `hospital`.`enfermo` (`enfermoId`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
